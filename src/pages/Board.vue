@@ -2,7 +2,7 @@
   <v-container>
     <draggable 
       id="board"
-      class="row pa-4"
+      class="row pa-4 pt-10"
       v-model="columns"
       group="columns"
       ghost-class="ghost"
@@ -15,8 +15,60 @@
         v-for="(column, indexColumn) in columns"
         :key="indexColumn"
       >
-        <v-card-text class="mb-0 cardColummHeader hoverGrab">
-          <p class="title mb-0">{{ column.name }}</p>
+        <v-card-text class="d-flex mb-0 mb-0 hoverGrab">
+          <v-btn text >
+              {{ column.name }}
+          </v-btn>
+          <v-spacer></v-spacer>
+            <div class="text-center">
+              <v-menu
+                transition="scale-transition"
+                origin="center center"
+              >
+              <template v-slot:activator="{ on, attrs }">
+                <v-btn 
+                  icon
+                  v-bind="attrs"
+                  v-on="on" >
+                  <v-icon>mdi-dots-horizontal</v-icon>
+                </v-btn>
+              </template>
+              <v-list  
+                style="min-width: 300px;">
+                <v-list-item
+                >
+                  <v-list-item-content>
+                    <v-list-item-title class="text-center">Lista de Acciones</v-list-item-title>
+                  </v-list-item-content>
+
+                  <v-list-item-action>
+                    <v-btn
+                      :class="fav ? 'red--text' : ''"
+                      icon
+                      @click="fav = !fav"
+                    >
+                      <v-icon>mdi-close</v-icon>
+                    </v-btn>
+                  </v-list-item-action>
+                </v-list-item>
+                <v-list-item
+                  @click="() => {}"
+                >
+                  <v-list-item-title v-text="'Agregar Card'"></v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  @click="() => {}"
+                >
+                  <v-list-item-title v-text="'Ordenar Por'"></v-list-item-title>
+                </v-list-item>
+                <v-list-item
+                  @click="() => {}"
+                >
+                  <v-list-item-title v-text="'Archivar esta Lista'"></v-list-item-title>
+                </v-list-item>
+              </v-list>
+            </v-menu>
+          </div>
         </v-card-text>
           <draggable
             v-model="column.cards"
@@ -35,10 +87,11 @@
               :key="card.id" 
             >
               <v-card
+                shaped
                 class="mb-2 hoverGrab"
                 @mouseover="card.hover = true"
                 @mouseleave="card.hover = false"
-                
+                elevation="1"
                 v-if="!card.editable"
                 tile
               >
@@ -48,6 +101,7 @@
                       class="pa-0"
                     >
                       {{ card.name }}
+
                     </v-btn>
                   <v-spacer></v-spacer>
 
@@ -60,9 +114,6 @@
                   </v-btn>
                   
                 </v-card-title>
-                <v-card-text>
-                  <div class="text-truncate" v-if="card.description">{{ card.description }}</div>
-                </v-card-text>
               </v-card>
               <v-layout v-else justify-space-between class="mb-2">
                 <v-text-field
@@ -82,6 +133,7 @@
             <v-btn 
               block 
               @click="addCard(column)"
+              class="button-add-card justify-start text-center"
               depressed
               outlined
             >
@@ -93,11 +145,18 @@
           <v-card-actions class="pa-3" v-else>
             <v-btn 
               color="success" 
-              block 
               @click="onAddConfirmCard(column)"
               depressed
             >
-              <v-icon>mdi-plus</v-icon> Agregar</v-btn>
+              <v-icon>mdi-plus</v-icon> Agregar
+            </v-btn>
+            <v-btn 
+              text
+              @click="onAddConfirmCard(column)"
+              depressed
+            >
+              <v-icon>mdi-close</v-icon>
+            </v-btn>
           </v-card-actions>
       </div>
 
@@ -138,7 +197,6 @@
             <span class="headline">{{ selectedTaskShow.name ? selectedTaskShow.name : "Sin título" }}</span>
           </v-card-title>
           <v-card-text class="pb-0">
-            <p>{{ selectedTaskShow.description ? selectedTaskShow.description : "Sin descripción" }}</p>
             <p class="font-italic">Creado el 30/10/2019 16:07</p>
           </v-card-text>
           <v-card-text class="pt-0">
@@ -169,15 +227,53 @@
                       </v-list>
                     </v-col>
                     <v-col cols="12" md="12">
-                      <v-textarea
-                        solo
-                        name="input-7-4"
-                        label="Agregar comentario"
-                      ></v-textarea>
+                      <div class="text-h6">Descripción</div>
                     </v-col>
-                    <v-col class="text-right pt-0" cols="12" md="12">
-                      <v-btn>Agregar</v-btn>
+                    <v-col cols="12" md="12">
+                      <p v-html="selectedTaskShow.description" style="cursor: pointer;" @click="removeClass('d-none', 'edit-descripcion')"></p>
+                      <div class="d-none" id="edit-descripcion">
+                        <ckeditor :editor="editor" v-model="selectedTaskShow.description" :config="editorConfig"></ckeditor>
+                      </div> 
+
                     </v-col>
+                    <v-col class="text-left pt-0" cols="12" md="12">
+                      <v-btn color="primary">Guardar</v-btn>
+                      <v-btn text>
+                      Cancelar
+                      </v-btn>
+                    </v-col>
+                    
+                    <v-col cols="12" md="12">
+                      <div class="text-h6">Actividad</div>
+                    </v-col>
+                    <v-col cols="12" md="12">
+                      <ckeditor :editor="editor" v-model="selectedTaskShow.actividad" :config="editorConfig"></ckeditor>
+                    </v-col>
+                    <v-col class="text-left pt-0" cols="12" md="12">
+                      <v-btn color="primary" @click="addActivity()">Guardar</v-btn>
+                    </v-col>
+                    <v-col cols="12" md="12">
+                      <div 
+                        v-for="actividad in selectedTaskShow.listaActividad"
+                        v-bind:key="actividad.id">
+
+                        <p class="text-overline">User <span  class="text-caption">{{ formattedDate(actividad.time_create) }}</span></p>
+                        
+                        <v-alert
+                            color="blue-grey"
+                            dark
+                            dense
+                            prominent
+                            v-html="actividad.text"
+                          >
+                        </v-alert>
+                      </div>
+
+                    </v-col>
+
+
+                    
+
                   </v-row>
                 </v-col>
                 <v-col cols="12" md="4">
@@ -221,12 +317,19 @@
 
 <script>
 import draggable from 'vuedraggable'
+import CKEditor from '@ckeditor/ckeditor5-vue2';
+import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
+import moment from 'moment';
+import 'moment/locale/es';
+
 export default {
   components: {
-    draggable
+    draggable,
+    ckeditor: CKEditor.component
   },
   data () {
     return {
+      editor: ClassicEditor,
       columns: [
         {
           id: 1,
@@ -234,8 +337,21 @@ export default {
           cards: [
             {
               name: 'Teste Inicial',
-              description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s",
+              description: "Lorem Ipsum is simply dummy text of the printing and typesetting industry.",
               id: '2',
+              actividad: '',
+              listaActividad: [
+                {
+                  id: Math.floor((Math.random() * 1000000) + 1),
+                  text: 'Actividad 1',
+                  time_create: '2022-08-07T22:06:20+00:00'
+                }, 
+                {
+                  id: Math.floor((Math.random() * 1000000) + 1),
+                  text: 'Actividad 2',
+                  time_create: '2022-08-07T22:06:20+00:00'
+                }
+              ],
               hover: false
             }
           ]
@@ -247,21 +363,52 @@ export default {
       cardCreating: {},
       isAddingColumn: false,
       nameColumn: '',
+      fav: false,
 
       //Testes
-      testCheckList: false
+      testCheckList: false,
+      editorConfig: {
+        toolbar: [
+          'heading',
+          '|',
+          'bold',
+          'italic',
+          'link',
+          'bulletedList',
+          'numberedList',
+          '|',
+          'blockQuote',
+        ],
+        placeholder: 'Ingrese su texto aquí'
+      }
     }
   },
   methods: {
+    removeClass(clase, elemento) {
+      let element = document.getElementById(elemento);
+      element.classList.remove(clase);
+    },
+    formattedDate(date) {
+      return moment(date).fromNow();
+    },
+    addActivity() {
+      let id = Math.floor((Math.random() * 1000000) + 1)
+      this.selectedTaskShow.listaActividad.push({
+        id: id,
+        text: this.selectedTaskShow.actividad,
+        time_create: '2022-08-07T22:06:20+00:00'
+      });
+      this.selectedTaskShow.actividad = ''
+    },
     onShowTask (element) {
-      this.$router.push({ query: { task: element.id }})
+      this.$router.push({ path: '/', query: { task: element.id } })
       this.dialogShowTask = true
       setTimeout(() => {
         this.selectedTaskShow = element
       }, 500)
     },
     onCloseShowTask () {
-      this.$router.push({ query: {}})
+      this.$router.push({ path: '/', query: {  }  })
       this.dialogShowTask = false
       this.selectedTaskShow = {}
     },
@@ -272,6 +419,8 @@ export default {
         id: Math.random(),
         name: '',
         description: '',
+        actividad: '',
+        listaActividad: [],
         hover: false,
         editable: true
       })
@@ -299,6 +448,12 @@ export default {
       }, 100)
     },
     confirmAddColumn () {
+      //si es vcacio cierra y no agrega la columna 
+      if (!this.nameColumn || !0 === this.nameColumn.length) {
+        this.isAddingColumn = false
+        this.nameColumn = ''
+        return
+      }
       let column = {
         id: Math.floor((Math.random() * 1000000) + 1),
         name: this.nameColumn,
@@ -335,24 +490,6 @@ export default {
     }
   },
   mounted () {
-    for (let i = 0; i < 10; i++) {
-      this.columns[0].cards.push({
-        id: Math.random(),
-        name: 'test ' + i,
-        description: 'Descripción ' + i,
-        hover: false,
-        editable: false
-      })
-    }
-
-    for (let i = 0; i < 6; i++) {
-      let column = {
-        id: Math.floor((Math.random() * 1000000) + 1),
-        name: 'Test automático ' + i,
-        cards: []
-      }
-      this.columns.push(column)
-    }
 
     if('task' in this.$route.query) {
       let task = this.$route.query.task
@@ -371,7 +508,9 @@ export default {
 
 
 <style>
-
+.ck-editor__editable {
+    min-height: 75px !important;
+}
 #board {
   height: 100%;
   position: absolute;
@@ -485,5 +624,15 @@ export default {
 	border-radius: 5px;
 	-webkit-box-shadow: inset 0 0 6px rgba(0,0,0,.3);
 	background-color: #555;
+}
+.button-add-card {
+  border: 0px;
+}
+.v-list-item .v-list-item__title, .v-list-item .v-list-item__subtitle {
+    line-height: 1.2;
+    font-size: 14px;
+}
+.v-list-item {
+    min-height: 30px;
 }
 </style>

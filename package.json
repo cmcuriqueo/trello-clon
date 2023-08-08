@@ -15,7 +15,10 @@
     "deploy:github": "node scripts/gh-pages-deploy.js"
   },
   "dependencies": {
-    "core-js": "^3.3.2",
+    "@ckeditor/ckeditor5-build-classic": "^39.0.0",
+    "@ckeditor/ckeditor5-vue2": "^3.0.1",
+    "core-js": "^3.32.0",
+    "moment": "^2.29.4",
     "vue": "^2.6.10",
     "vue-event-hub": "^1.0.2",
     "vue-router": "^3.1.3",
